@@ -31,6 +31,7 @@ class ImageCropper:
         self.start_x = None
         self.start_y = None
         self.crop_coords = None
+        self.displayed_image = None
 
     def open_image(self):
         file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp *.tiff")])
@@ -40,7 +41,11 @@ class ImageCropper:
             self.crop_button.config(state=tk.NORMAL)
 
     def display_image(self, image):
-        self.tk_image = ImageTk.PhotoImage(image)
+        self.canvas.delete("all")
+        max_width, max_height = self.root.winfo_width(), self.root.winfo_height() - 100  # Adjust for control panel height
+        self.displayed_image = image.copy()
+        self.displayed_image.thumbnail((max_width, max_height), Image.LANCZOS)
+        self.tk_image = ImageTk.PhotoImage(self.displayed_image)
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
         self.canvas.config(scrollregion=self.canvas.bbox(tk.ALL))
 
@@ -60,10 +65,17 @@ class ImageCropper:
 
     def crop_image(self):
         if self.rect and self.crop_coords:
-            x1, y1, x2, y2 = self.crop_coords
-            self.cropped_image = self.image.crop((x1, y1, x2, y2))
-            self.display_image(self.cropped_image)
-            self.save_button.config(state=tk.NORMAL)
+            x1, y1, x2, y2 = [int(coord) for coord in self.crop_coords]
+            x1 = max(0, x1)
+            y1 = max(0, y1)
+            x2 = min(self.displayed_image.width, x2)
+            y2 = min(self.displayed_image.height, y2)
+            if x1 < x2 and y1 < y2:
+                self.cropped_image = self.image.crop((x1, y1, x2, y2))
+                self.display_image(self.cropped_image)
+                self.save_button.config(state=tk.NORMAL)
+            else:
+                messagebox.showerror("Error", "Invalid crop area. Please select a valid area within the image bounds.")
 
     def save_image(self):
         if hasattr(self, 'cropped_image'):
