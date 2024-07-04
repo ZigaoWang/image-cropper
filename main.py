@@ -6,6 +6,7 @@ class ImageCropper:
     def __init__(self, root):
         self.root = root
         self.root.title("Image Cropper")
+        self.root.geometry("800x600")
 
         self.frame = tk.Frame(root)
         self.frame.pack(side=tk.TOP, fill=tk.X)
@@ -19,7 +20,7 @@ class ImageCropper:
         self.save_button = tk.Button(self.frame, text="Save Image", command=self.save_image, state=tk.DISABLED)
         self.save_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.canvas = tk.Canvas(root, cursor="cross")
+        self.canvas = tk.Canvas(root, cursor="cross", bg="gray")
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.canvas.bind("<ButtonPress-1>", self.on_button_press)
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
@@ -29,6 +30,7 @@ class ImageCropper:
         self.rect = None
         self.start_x = None
         self.start_y = None
+        self.crop_coords = None
 
     def open_image(self):
         file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp *.tiff")])
@@ -54,11 +56,11 @@ class ImageCropper:
         self.canvas.coords(self.rect, self.start_x, self.start_y, cur_x, cur_y)
 
     def on_button_release(self, event):
-        pass
+        self.crop_coords = self.canvas.coords(self.rect)
 
     def crop_image(self):
-        if self.rect:
-            x1, y1, x2, y2 = self.canvas.coords(self.rect)
+        if self.rect and self.crop_coords:
+            x1, y1, x2, y2 = self.crop_coords
             self.cropped_image = self.image.crop((x1, y1, x2, y2))
             self.display_image(self.cropped_image)
             self.save_button.config(state=tk.NORMAL)
