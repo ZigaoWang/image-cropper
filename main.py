@@ -3,6 +3,22 @@ from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import math
 
+def print_info():
+    logo = r"""
+   ____                      _____                          
+  /  _/_ _  ___ ____ ____   / ___/______  ___  ___  ___ ____
+ _/ //  ' \/ _ `/ _ `/ -_) / /__/ __/ _ \/ _ \/ _ \/ -_) __/
+/___/_/_/_/\_,_/\_, /\__/  \___/_/  \___/ .__/ .__/\__/_/   
+               /___/                   /_/  /_/             
+    """
+    print("--------------------------------------------------")
+    print(logo)
+    print("Image Cropper")
+    print("Made with 💜 by Zigao Wang.")
+    print("This project is licensed under MIT License.")
+    print("GitHub Repo: https://github.com/ZigaoWang/image-cropper/")
+    print("--------------------------------------------------")
+
 class ImageCropper:
     def __init__(self, root):
         self.root = root
@@ -104,6 +120,7 @@ class ImageCropper:
         return f"{width//r}:{height//r}"
 
 if __name__ == "__main__":
+    print_info()
     root = tk.Tk()
     app = ImageCropper(root)
     root.mainloop()
