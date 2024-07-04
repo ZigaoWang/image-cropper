@@ -1,0 +1,76 @@
+import tkinter as tk
+from tkinter import filedialog, messagebox
+from PIL import Image, ImageTk
+
+class ImageCropper:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Image Cropper")
+
+        self.frame = tk.Frame(root)
+        self.frame.pack(side=tk.TOP, fill=tk.X)
+
+        self.load_button = tk.Button(self.frame, text="Load Image", command=self.open_image)
+        self.load_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.crop_button = tk.Button(self.frame, text="Crop Image", command=self.crop_image, state=tk.DISABLED)
+        self.crop_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.save_button = tk.Button(self.frame, text="Save Image", command=self.save_image, state=tk.DISABLED)
+        self.save_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.canvas = tk.Canvas(root, cursor="cross")
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.canvas.bind("<ButtonPress-1>", self.on_button_press)
+        self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
+        self.canvas.bind("<ButtonRelease-1>", self.on_button_release)
+
+        self.image = None
+        self.rect = None
+        self.start_x = None
+        self.start_y = None
+
+    def open_image(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp *.tiff")])
+        if file_path:
+            self.image = Image.open(file_path)
+            self.display_image(self.image)
+            self.crop_button.config(state=tk.NORMAL)
+
+    def display_image(self, image):
+        self.tk_image = ImageTk.PhotoImage(image)
+        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
+        self.canvas.config(scrollregion=self.canvas.bbox(tk.ALL))
+
+    def on_button_press(self, event):
+        self.start_x = event.x
+        self.start_y = event.y
+        if self.rect:
+            self.canvas.delete(self.rect)
+        self.rect = self.canvas.create_rectangle(self.start_x, self.start_y, self.start_x, self.start_y, outline="red")
+
+    def on_mouse_drag(self, event):
+        cur_x, cur_y = event.x, event.y
+        self.canvas.coords(self.rect, self.start_x, self.start_y, cur_x, cur_y)
+
+    def on_button_release(self, event):
+        pass
+
+    def crop_image(self):
+        if self.rect:
+            x1, y1, x2, y2 = self.canvas.coords(self.rect)
+            self.cropped_image = self.image.crop((x1, y1, x2, y2))
+            self.display_image(self.cropped_image)
+            self.save_button.config(state=tk.NORMAL)
+
+    def save_image(self):
+        if hasattr(self, 'cropped_image'):
+            save_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png"), ("JPEG files", "*.jpg *.jpeg"), ("BMP files", "*.bmp"), ("TIFF files", "*.tiff")])
+            if save_path:
+                self.cropped_image.save(save_path)
+                messagebox.showinfo("Image Cropper", "Image saved successfully!")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ImageCropper(root)
+    root.mainloop()
