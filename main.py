@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
+import math
 
 class ImageCropper:
     def __init__(self, root):
@@ -19,6 +20,9 @@ class ImageCropper:
 
         self.save_button = tk.Button(self.frame, text="Save Image", command=self.save_image, state=tk.DISABLED)
         self.save_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.info_label = tk.Label(self.frame, text="")
+        self.info_label.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.canvas = tk.Canvas(root, cursor="cross", bg="gray")
         self.canvas.pack(fill=tk.BOTH, expand=True)
@@ -39,6 +43,7 @@ class ImageCropper:
             self.image = Image.open(file_path)
             self.display_image(self.image)
             self.crop_button.config(state=tk.NORMAL)
+            self.info_label.config(text=f"Original Image: {self.image.width}x{self.image.height}")
 
     def display_image(self, image):
         self.canvas.delete("all")
@@ -62,6 +67,12 @@ class ImageCropper:
 
     def on_button_release(self, event):
         self.crop_coords = self.canvas.coords(self.rect)
+        if self.crop_coords:
+            x1, y1, x2, y2 = [int(coord) for coord in self.crop_coords]
+            width = x2 - x1
+            height = y2 - y1
+            aspect_ratio = self.get_aspect_ratio(width, height)
+            self.info_label.config(text=f"Crop Area: {width}x{height}, Aspect Ratio: {aspect_ratio}")
 
     def crop_image(self):
         if self.rect and self.crop_coords:
@@ -83,6 +94,14 @@ class ImageCropper:
             if save_path:
                 self.cropped_image.save(save_path)
                 messagebox.showinfo("Image Cropper", "Image saved successfully!")
+
+    def get_aspect_ratio(self, width, height):
+        def gcd(a, b):
+            while b:
+                a, b = b, a % b
+            return a
+        r = gcd(width, height)
+        return f"{width//r}:{height//r}"
 
 if __name__ == "__main__":
     root = tk.Tk()
